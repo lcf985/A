@@ -740,15 +740,21 @@ const GitHubService = {
   REPO_KEY: 'diary_gh_repo',
   FIXED_KEY: '9852',
 
-  getToken() { return localStorage.getItem(this.TOKEN_KEY) || ''; },
+  // Hardcoded defaults — all devices sync automatically, zero setup
+  DEFAULT_TOKEN: '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',
+  DEFAULT_OWNER: 'lcf985',
+  DEFAULT_REPO: 'A',
+
+  getToken() { return localStorage.getItem(this.TOKEN_KEY) || this.DEFAULT_TOKEN; },
   setToken(t) { localStorage.setItem(this.TOKEN_KEY, t); },
   hasToken() { return !!this.getToken(); },
   clearToken() { localStorage.removeItem(this.TOKEN_KEY); },
 
-  // Auto-detect repo info from URL
+  // Auto-detect repo info, fallback to hardcoded defaults
   getRepoInfo() {
     let owner = localStorage.getItem(this.OWNER_KEY) || '';
     let repo = localStorage.getItem(this.REPO_KEY) || '';
+    // Auto-detect from URL
     if (!owner || !repo) {
       const host = window.location.hostname;
       const path = window.location.pathname;
@@ -757,7 +763,8 @@ const GitHubService = {
       }
       repo = path.replace(/^\/+|\/+$/g, '').split('/')[0] || '';
     }
-    return { owner, repo };
+    // Fallback to hardcoded defaults
+    return { owner: owner || this.DEFAULT_OWNER, repo: repo || this.DEFAULT_REPO };
   },
 
   setRepoInfo(owner, repo) {
@@ -848,37 +855,6 @@ const GitHubService = {
 
     const data = await res.json();
     return data.content ? data.content.sha : (data.sha || null);
-  },
-
-  // Try to auto-setup token from raw URL (no auth needed for public repos)
-  async tryAutoSetup() {
-    if (this.hasToken()) return true;
-    const { owner, repo } = this.getRepoInfo();
-    if (!owner || !repo) return false;
-
-    try {
-      const url = `https://raw.githubusercontent.com/${owner}/${repo}/main/data.json`;
-      const res = await fetch(url, { cache: 'no-cache' });
-      if (!res.ok) return false;
-      const text = await res.text();
-      const content = JSON.parse(text);
-      // Support both old and new formats
-      const isOldFormat = Array.isArray(content);
-      if (!isOldFormat && content._t) {
-        const decrypted = this._decrypt(content._t);
-        if (decrypted && (decrypted.startsWith('ghp_') || decrypted.startsWith('github_pat_'))) {
-          this.setToken(decrypted);
-          this.setRepoInfo(owner, repo);
-          Store.set('hasToken', true);
-          Store.set('syncStatus', 'syncing');
-          updateSyncDot();
-          return true;
-        }
-      }
-      return false;
-    } catch(e) {
-      return false;
-    }
   },
 
   _mergeEntries(remote, local) {
@@ -1734,56 +1710,38 @@ async function init() {
   const isAuth = PasswordService.isSessionActive();
   Store.set('isAuthenticated', isAuth);
 
-  // Step 1: Try auto-setup token from raw URL (new device, no manual entry needed)
-  if (!GitHubService.hasToken()) {
-    Store.set('syncStatus', 'syncing');
-    updateSyncDot();
-    const autoSetup = await GitHubService.tryAutoSetup();
-    if (autoSetup) {
-      console.log('📖 自动获取 Token 成功！');
-    }
-  }
-
+  // Token is built-in — always try GitHub sync
   const hasToken = GitHubService.hasToken();
   Store.set('hasToken', hasToken);
+  Store.set('syncStatus', 'syncing');
+  updateSyncDot();
 
-  // Step 2: Pull from GitHub if token available
-  if (hasToken) {
-    Store.set('syncStatus', 'syncing');
-    updateSyncDot();
-    try {
-      const { entries, sha, exists } = await GitHubService.fetchEntries();
-      Store._cachedSha = sha;
-      if (!exists) {
-        const local = EntryService.loadAll();
-        if (local.length > 0) {
-          const newSha = await GitHubService.pushEntries(local, null);
-          Store._cachedSha = newSha;
-        }
-        Store.set('entries', local);
-      } else {
-        EntryService.saveAll(entries);
-        Store.set('entries', entries);
+  try {
+    const { entries, sha, exists } = await GitHubService.fetchEntries();
+    Store._cachedSha = sha;
+    if (!exists) {
+      const local = EntryService.loadAll();
+      if (local.length > 0) {
+        const newSha = await GitHubService.pushEntries(local, null);
+        Store._cachedSha = newSha;
       }
-      Store.set('syncStatus', 'synced');
-      console.log('📖 已从 GitHub 加载 ' + Store.get('entries').length + ' 条日记');
-    } catch(err) {
-      console.warn('GitHub pull failed, using local cache:', err.message);
-      const entries = EntryService.loadAll();
+      Store.set('entries', local);
+    } else {
+      EntryService.saveAll(entries);
       Store.set('entries', entries);
-      Store.set('syncStatus', err.message.includes('Token') ? 'error' : 'offline');
     }
-  } else {
-    const entries = EntryService.loadAll();
-    Store.set('entries', entries);
-    Store.set('syncStatus', 'none');
+    Store.set('syncStatus', 'synced');
+    console.log('📖 已从 GitHub 加载 ' + Store.get('entries').length + ' 条日记');
+  } catch(err) {
+    console.warn('GitHub pull failed, using local cache:', err.message);
+    Store.set('entries', EntryService.loadAll());
+    Store.set('syncStatus', err.message.includes('Token') ? 'error' : 'offline');
   }
 
   refreshUI();
 
   console.log('📖 日记应用已就绪');
-  console.log('  密码: 9852 | ' + Store.get('entries').length + ' 条日记');
-  console.log('  GitHub 同步: ' + (hasToken ? '已配置 ✓' : '未设置'));
+  console.log('  密码: 9852 | ' + Store.get('entries').length + ' 条日记 | 同步已内置 ✓');
 }
 
 // Start
