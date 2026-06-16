@@ -1,1143 +1,1759 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的日记 · My Diary</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #5B8C5A;
-            --primary-light: #E8F5E9;
-            --primary-dark: #3D6B3C;
-            --accent: #D4A574;
-            --accent-light: #F5E6D3;
-            --bg: #F7F5F0;
-            --card-bg: #FFFFFF;
-            --text: #2C3E2D;
-            --text-secondary: #7D8B7E;
-            --border: #E0E6E0;
-            --shadow: 0 4px 20px rgba(44,62,45,0.08);
-            --shadow-hover: 0 8px 30px rgba(44,62,45,0.12);
-            --radius: 16px;
-            --radius-sm: 10px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 24px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-        }
-
-        .header-content {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-
-        .header .subtitle {
-            font-size: 0.75rem;
-            opacity: 0.8;
-            margin-top: 2px;
-            font-weight: 300;
-        }
-
-        .btn-add {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-add:hover {
-            background: rgba(255,255,255,0.35);
-            transform: scale(1.1) rotate(90deg);
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Calendar Section */
-        .calendar-section {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow);
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .month-nav {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .nav-btn {
-            background: var(--primary-light);
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 1.1rem;
-            color: var(--primary);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .current-month {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--text);
-            min-width: 140px;
-            text-align: center;
-        }
-
-        .today-btn {
-            background: var(--accent-light);
-            border: none;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: var(--accent);
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .today-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        /* Calendar Grid */
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .weekday {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            padding: 8px 0;
-        }
-
-        .weekday.weekend {
-            color: #C0392B;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border-radius: var(--radius-sm);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            position: relative;
-            background: var(--bg);
-            border: 2px solid transparent;
-        }
-
-        .calendar-day:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-            border-color: var(--primary-light);
-        }
-
-        .calendar-day.other-month {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
-        .calendar-day.today {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            font-weight: 700;
-        }
-
-        .calendar-day.has-entry {
-            background: var(--accent-light);
-        }
-
-        .calendar-day .day-number {
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .calendar-day .day-emoji {
-            font-size: 1.3rem;
-            line-height: 1;
-            transition: transform 0.2s ease;
-        }
-
-        .calendar-day:hover .day-emoji {
-            transform: scale(1.2);
-        }
-
-        .calendar-day .entry-count {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: var(--primary);
-            color: white;
-            font-size: 0.6rem;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-
-        /* Diary List Section */
-        .diary-section {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            min-height: 300px;
-        }
-
-        .section-title {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .section-title .emoji {
-            font-size: 1.3rem;
-        }
-
-        .diary-group {
-            margin-bottom: 24px;
-        }
-
-        .diary-date-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--primary-light);
-        }
-
-        .date-badge {
-            background: var(--primary);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .date-weekday {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .diary-card {
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            border-left: 3px solid var(--accent);
-            position: relative;
-        }
-
-        .diary-card:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-hover);
-            border-left-color: var(--primary);
-        }
-
-        .diary-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .diary-title {
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .diary-time {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            margin-left: 8px;
-        }
-
-        .diary-preview {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .diary-emoji {
-            font-size: 1.2rem;
-            margin-right: 6px;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state .emoji {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            display: block;
-            opacity: 0.6;
-        }
-
-        .empty-state h3 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-
-        .empty-state p {
-            font-size: 0.9rem;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            transform: scale(0.95) translateY(20px);
-            transition: transform 0.3s ease;
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1) translateY(0);
-        }
-
-        .modal-header {
-            padding: 24px 24px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .modal-close:hover {
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .modal-body {
-            padding: 20px 24px 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-
-        .form-input, .form-textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-family: 'Noto Sans SC', sans-serif;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .form-input:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: white;
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 200px;
-            line-height: 1.7;
-        }
-
-        .emoji-picker {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding: 10px;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            border: 2px solid var(--border);
-        }
-
-        .emoji-option {
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-            background: none;
-        }
-
-        .emoji-option:hover {
-            background: white;
-            transform: scale(1.2);
-        }
-
-        .emoji-option.selected {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .modal-footer {
-            padding: 0 24px 24px;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .btn {
-            padding: 10px 24px;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-            font-family: 'Noto Sans SC', sans-serif;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(91,140,90,0.3);
-        }
-
-        .btn-secondary {
-            background: var(--bg);
-            color: var(--text-secondary);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border);
-            color: var(--text);
-        }
-
-        .btn-danger {
-            background: #FFEBEE;
-            color: #C0392B;
-        }
-
-        .btn-danger:hover {
-            background: #C0392B;
-            color: white;
-        }
-
-        /* View Modal */
-        .view-content {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1.05rem;
-            line-height: 1.8;
-            color: var(--text);
-            white-space: pre-wrap;
-            padding: 16px 0;
-        }
-
-        .view-meta {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 12px;
-        }
-
-        .view-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .view-meta-item .emoji {
-            font-size: 1.2rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .container {
-                padding: 12px;
-            }
-            .calendar-section, .diary-section {
-                padding: 16px;
-                border-radius: 12px;
-            }
-            .calendar-day .day-emoji {
-                font-size: 1.1rem;
-            }
-            .current-month {
-                font-size: 1.1rem;
-                min-width: 120px;
-            }
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .diary-card {
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        .calendar-day {
-            animation: fadeIn 0.3s ease forwards;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-secondary);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>我的日记</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --color-bg: #fdf6f0;
+  --color-surface: #ffffff;
+  --color-primary: #d4846b;
+  --color-primary-hover: #c0735b;
+  --color-text: #3d2c2a;
+  --color-text-muted: #8c7a74;
+  --color-border: #e8d5cc;
+  --color-accent: #f0c9b9;
+  --color-today-bg: #fbe9e3;
+  --color-selected-bg: #f5e0d8;
+  --color-danger: #c0392b;
+  --color-danger-hover: #a93226;
+  --color-success: #6b8f71;
+  --color-overlay: rgba(61, 44, 42, 0.4);
+  --color-outside: #c9bdb7;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-card: 0 2px 8px rgba(61, 44, 42, 0.06);
+  --shadow-modal: 0 8px 32px rgba(61, 44, 42, 0.15);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  --transition: 0.2s ease;
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  touch-action: manipulation;
+}
+input, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color var(--transition);
+}
+input:focus, textarea:focus { border-color: var(--color-primary); }
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* ===== App Shell ===== */
+#app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 12px 80px;
+}
+
+/* ===== Header ===== */
+#app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-bg);
+  padding: 12px 0 8px;
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.btn-nav {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  border-radius: 50%;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.btn-nav:hover, .btn-nav:active { background: var(--color-accent); }
+.month-year-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  user-select: none;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.btn-today {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--color-primary);
+  transition: all var(--transition);
+}
+.btn-today:hover, .btn-today:active { background: var(--color-primary); color: #fff; }
+.btn-lock {
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+}
+.btn-lock:hover, .btn-lock:active { background: var(--color-accent); }
+
+/* Sync status dot */
+.sync-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.sync-dot.none { background: #ccc; }
+.sync-dot.synced { background: var(--color-success); }
+.sync-dot.syncing { background: #f0ad4e; animation: pulse 1s infinite; }
+.sync-dot.error { background: var(--color-danger); }
+.sync-dot.offline { background: #999; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+/* Settings button */
+.btn-settings {
+  width: 36px; height: 36px;
+  font-size: 1.1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+}
+.btn-settings:hover, .btn-settings:active { background: var(--color-accent); }
+
+/* Settings overlay */
+#settings-overlay {
+  position: fixed; inset: 0;
+  background: var(--color-overlay);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#settings-overlay.hidden { display: none; }
+.settings-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  width: 100%; max-width: 400px;
+  box-shadow: var(--shadow-modal);
+}
+.settings-card h2 { font-size: 1.2rem; margin-bottom: 4px; }
+.settings-card .settings-subtitle {
+  font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 16px; line-height: 1.5;
+}
+.settings-card label {
+  display: block; font-size: 0.8rem; font-weight: 600;
+  color: var(--color-text-muted); margin-bottom: 4px; margin-top: 12px;
+}
+.settings-card input {
+  width: 100%; margin-bottom: 6px; font-size: 0.85rem;
+}
+.settings-card .settings-hint {
+  font-size: 0.7rem; color: var(--color-text-muted);
+  margin-bottom: 8px; line-height: 1.4;
+}
+.settings-card .settings-hint a {
+  color: var(--color-primary); text-decoration: none;
+}
+.settings-card .settings-actions {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;
+}
+.settings-card .settings-status {
+  font-size: 0.8rem; color: var(--color-success); text-align: center; margin-top: 8px;
+  min-height: 20px;
+}
+.settings-card .settings-status.error { color: var(--color-danger); }
+
+/* ===== Calendar ===== */
+#calendar-section {
+  margin-top: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 12px 8px;
+  box-shadow: var(--shadow-card);
+}
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.calendar-cell {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  font-size: 0.85rem;
+  transition: background var(--transition);
+  user-select: none;
+  min-width: 0;
+}
+.calendar-cell:hover { background: var(--color-accent); }
+.calendar-cell.outside-month { color: var(--color-outside); cursor: default; }
+.calendar-cell.outside-month:hover { background: transparent; }
+.calendar-cell.today { background: var(--color-today-bg); font-weight: 700; }
+.calendar-cell.selected { box-shadow: inset 0 0 0 2px var(--color-primary); }
+.calendar-cell .day-num { line-height: 1; }
+.calendar-cell .emoji-marker {
+  font-size: 0.65rem;
+  line-height: 1;
+  position: absolute;
+  bottom: 3px;
+  pointer-events: none;
+}
+
+/* ===== Diary Section ===== */
+#diary-section { margin-top: 16px; }
+.diary-date-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+.diary-date-header:first-child { margin-top: 0; }
+.diary-date-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.diary-date-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-accent);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+.entry-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+  position: relative;
+}
+.entry-card:hover, .entry-card:active { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(61,44,42,0.1); }
+.entry-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.entry-emoji { font-size: 1.3rem; flex-shrink: 0; }
+.entry-title {
+  font-weight: 600;
+  font-size: 1rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry-preview {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 30px;
+}
+.entry-actions {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.entry-actions button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+}
+.btn-edit:hover { background: var(--color-accent); }
+.btn-delete { color: var(--color-danger); }
+.btn-delete:hover { background: #fde8e8; }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--color-text-muted);
+}
+.empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state-text { font-size: 0.95rem; }
+
+/* ===== FAB ===== */
+#fab {
+  position: fixed;
+  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1.6rem;
+  box-shadow: 0 4px 16px rgba(212, 132, 107, 0.4);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition), opacity var(--transition);
+}
+#fab:hover { transform: scale(1.08); }
+#fab:active { transform: scale(0.95); }
+#fab.hidden { transform: scale(0); opacity: 0; pointer-events: none; }
+
+/* ===== Modal ===== */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+#modal-overlay.hidden { display: none; }
+#modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.modal-date { font-size: 0.85rem; color: var(--color-text-muted); }
+.modal-close {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+  margin-left: auto;
+}
+.modal-close:hover { background: var(--color-accent); }
+.modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-body .entry-detail-emoji { font-size: 2.5rem; text-align: center; margin-bottom: 8px; }
+.modal-body .entry-detail-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-align: center;
+  word-break: break-word;
+}
+.modal-body .entry-detail-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.modal-body .entry-detail-content {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Edit form in modal */
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+.form-group .emoji-input { font-size: 1.5rem; width: 60px; text-align: center; }
+.form-group textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.7;
+}
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all var(--transition);
+}
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-secondary { background: var(--color-accent); color: var(--color-text); }
+.btn-secondary:hover { background: var(--color-border); }
+.btn-danger { background: var(--color-danger); color: #fff; }
+.btn-danger:hover { background: var(--color-danger-hover); }
+.btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+
+/* ===== Password Dialog ===== */
+#password-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#password-overlay.hidden { display: none; }
+.password-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow-modal);
+  text-align: center;
+}
+.password-card h2 { margin-bottom: 6px; font-size: 1.3rem; }
+.password-card .pw-subtitle { font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 20px; }
+.password-card .pw-error {
+  font-size: 0.85rem;
+  color: var(--color-danger);
+  margin-top: 8px;
+  min-height: 20px;
+}
+.password-card input { width: 100%; margin-bottom: 10px; }
+.password-card .pw-actions { display: flex; gap: 10px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+.pw-link {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 16px;
+  display: block;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.pw-link.danger { color: var(--color-danger); margin-top: 24px; }
+
+/* ===== Toast ===== */
+#toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  left: 16px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: var(--shadow-modal);
+  animation: toastIn 0.3s ease;
+  pointer-events: auto;
+  max-width: 360px;
+}
+.toast.success { background: var(--color-success); }
+.toast.error { background: var(--color-danger); }
+.toast.info { background: var(--color-primary); }
+@keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ===== Confirm Dialog ===== */
+#confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#confirm-overlay.hidden { display: none; }
+.confirm-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: var(--shadow-modal);
+  text-align: center;
+}
+.confirm-card p { margin-bottom: 20px; font-size: 0.95rem; }
+.confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+/* ===== Responsive ===== */
+@media (min-width: 768px) {
+  #app { padding: 0 20px 80px; }
+  #modal-overlay { align-items: center; padding: 40px; }
+  #modal-card { border-radius: var(--radius-xl); max-height: 80vh; }
+  .calendar-cell { font-size: 0.95rem; }
+  .calendar-cell .emoji-marker { font-size: 0.75rem; bottom: 4px; }
+}
+@media (min-width: 1024px) {
+  #app { padding: 0 0 80px; }
+  #calendar-section { padding: 16px 12px; }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <div>
-                <h1>我的日记</h1>
-                <div class="subtitle">记录生活的每一个瞬间</div>
-            </div>
-            <button class="btn-add" onclick="openAddModal()" title="写新日记">+</button>
-        </div>
-    </header>
 
-    <div class="container">
-        <!-- Calendar -->
-        <div class="calendar-section">
-            <div class="calendar-header">
-                <div class="month-nav">
-                    <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
-                    <div class="current-month" id="currentMonth"></div>
-                    <button class="nav-btn" onclick="changeMonth(1)">▶</button>
-                </div>
-                <button class="today-btn" onclick="goToToday()">回到今天</button>
-            </div>
-            <div class="weekdays">
-                <div class="weekday">一</div>
-                <div class="weekday">二</div>
-                <div class="weekday">三</div>
-                <div class="weekday">四</div>
-                <div class="weekday">五</div>
-                <div class="weekday weekend">六</div>
-                <div class="weekday weekend">日</div>
-            </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-
-        <!-- Diary List -->
-        <div class="diary-section">
-            <div class="section-title">
-                <span class="emoji">📝</span>
-                <span id="diaryListTitle">本月日记</span>
-            </div>
-            <div id="diaryList"></div>
-        </div>
+<!-- ===== APP ===== -->
+<div id="app">
+  <header id="app-header">
+    <div class="header-row">
+      <button class="btn-nav" data-action="prev-month" aria-label="上个月">◀</button>
+      <h1 class="month-year-label" id="month-year-label" aria-live="polite">2026年6月</h1>
+      <button class="btn-nav" data-action="next-month" aria-label="下个月">▶</button>
     </div>
-
-    <!-- Add/Edit Modal -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="editModalTitle">写新日记</div>
-                <button class="modal-close" onclick="closeModal('editModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">日期</label>
-                    <input type="date" class="form-input" id="entryDate">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">心情 / 标签</label>
-                    <div class="emoji-picker" id="emojiPicker">
-                        <button class="emoji-option selected" data-emoji="📝">📝</button>
-                        <button class="emoji-option" data-emoji="😊">😊</button>
-                        <button class="emoji-option" data-emoji="😢">😢</button>
-                        <button class="emoji-option" data-emoji="😡">😡</button>
-                        <button class="emoji-option" data-emoji="😴">😴</button>
-                        <button class="emoji-option" data-emoji="🎉">🎉</button>
-                        <button class="emoji-option" data-emoji="💪">💪</button>
-                        <button class="emoji-option" data-emoji="🌧️">🌧️</button>
-                        <button class="emoji-option" data-emoji="☀️">☀️</button>
-                        <button class="emoji-option" data-emoji="❤️">❤️</button>
-                        <button class="emoji-option" data-emoji="🎵">🎵</button>
-                        <button class="emoji-option" data-emoji="🍔">🍔</button>
-                        <button class="emoji-option" data-emoji="✈️">✈️</button>
-                        <button class="emoji-option" data-emoji="📚">📚</button>
-                        <button class="emoji-option" data-emoji="🏃">🏃</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">标题</label>
-                    <input type="text" class="form-input" id="entryTitle" placeholder="给今天起个标题...">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">内容</label>
-                    <textarea class="form-textarea" id="entryContent" placeholder="写下今天的故事..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('editModal')">取消</button>
-                <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteEntry()">删除</button>
-                <button class="btn btn-primary" onclick="saveEntry()">保存</button>
-            </div>
-        </div>
+    <div class="header-actions">
+      <span class="sync-dot none" id="sync-dot" data-action="sync-retry" title="未设置同步"></span>
+      <button class="btn-today" data-action="today">今天</button>
+      <button class="btn-lock" data-action="toggle-lock" id="btn-lock" aria-label="解锁编辑">🔒</button>
+      <button class="btn-settings" data-action="open-settings" aria-label="同步设置">⚙️</button>
     </div>
+  </header>
 
-    <!-- View Modal -->
-    <div class="modal-overlay" id="viewModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="viewTitle">日记详情</div>
-                <button class="modal-close" onclick="closeModal('viewModal')">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="view-meta">
-                    <div class="view-meta-item">
-                        <span class="emoji" id="viewEmoji">📝</span>
-                        <span id="viewDate"></span>
-                    </div>
-                    <div class="view-meta-item">
-                        <span>🕐</span>
-                        <span id="viewTime"></span>
-                    </div>
-                </div>
-                <div class="view-content" id="viewContent"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('viewModal')">关闭</button>
-                <button class="btn btn-primary" onclick="editFromView()">编辑</button>
-            </div>
-        </div>
+  <main id="app-main">
+    <section id="calendar-section">
+      <div class="calendar-weekdays" id="calendar-weekdays"></div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </section>
+
+    <section id="diary-section">
+      <div id="diary-list"></div>
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-state-icon">📝</div>
+        <div class="empty-state-text">本月暂无日记</div>
+      </div>
+    </section>
+  </main>
+
+  <button id="fab" class="hidden" data-action="add-entry" aria-label="写日记">＋</button>
+</div>
+
+<!-- ===== MODAL OVERLAY ===== -->
+<div id="modal-overlay" class="hidden">
+  <div id="modal-card">
+    <div class="modal-header">
+      <span class="modal-date" id="modal-date-label"></span>
+      <button class="modal-close" data-action="close-modal" aria-label="关闭">✕</button>
     </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
 
-    <script>
-        // Data storage (using localStorage)
-        const STORAGE_KEY = 'myDiary_entries';
-        let currentDate = new Date();
-        let editingId = null;
-        let viewingId = null;
-        let selectedEmoji = '📝';
+<!-- ===== PASSWORD OVERLAY ===== -->
+<div id="password-overlay" class="hidden">
+  <div class="password-card" id="password-card"></div>
+</div>
 
-        // Demo data
-        const demoData = [
-            {
-                id: 'demo1',
-                date: new Date().toISOString().split('T')[0],
-                title: '开始使用新日记本',
-                content: '今天开始用这个新的日记应用记录生活。界面很清新，操作也很流畅。希望能坚持记录每一天的美好瞬间。\n\n下午去公园散步，看到了很美的夕阳，心情特别好。',
-                emoji: '🌅',
-                createdAt: new Date().toISOString()
-            },
-            {
-                id: 'demo2',
-                date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                title: '忙碌的工作日',
-                content: '今天工作特别忙，开了三个会议，处理了一堆邮件。虽然很累，但完成了一个重要的项目里程碑，感觉很有成就感。\n\n晚上和朋友去吃了火锅，聊了很多有趣的事情，是放松的一天。',
-                emoji: '💪',
-                createdAt: new Date(Date.now() - 86400000).toISOString()
-            },
-            {
-                id: 'demo3',
-                date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                title: '读了一本好书',
-                content: '晚上读完了《百年孤独》，马尔克斯的魔幻现实主义真的很震撼。那种孤独感贯穿全书，让人深思。\n\n准备下周开始读新的书。',
-                emoji: '📚',
-                createdAt: new Date(Date.now() - 86400000 + 3600000).toISOString()
-            }
-        ];
+<!-- ===== SETTINGS OVERLAY ===== -->
+<div id="settings-overlay" class="hidden">
+  <div class="settings-card" id="settings-card"></div>
+</div>
 
-        function getEntries() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(demoData));
-                return demoData;
-            }
-            return JSON.parse(stored);
-        }
+<!-- ===== CONFIRM OVERLAY ===== -->
+<div id="confirm-overlay" class="hidden">
+  <div class="confirm-card">
+    <p id="confirm-message"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" id="confirm-cancel">取消</button>
+      <button class="btn btn-danger" id="confirm-ok">确认</button>
+    </div>
+  </div>
+</div>
 
-        function saveEntries(entries) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-        }
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
 
-        function getMonthEntries(year, month) {
-            const entries = getEntries();
-            return entries.filter(e => {
-                const d = new Date(e.date);
-                return d.getFullYear() === year && d.getMonth() === month;
-            }).sort((a, b) => new Date(b.date + 'T' + (b.createdAt || '').split('T')[1]) - new Date(a.date + 'T' + (a.createdAt || '').split('T')[1]));
-        }
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+(function() {
+'use strict';
 
-        function getDayEntries(dateStr) {
-            const entries = getEntries();
-            return entries.filter(e => e.date === dateStr).sort((a, b) => {
-                const ta = a.createdAt || '';
-                const tb = b.createdAt || '';
-                return ta.localeCompare(tb);
+/* =================================================================
+   SECTION 1: State Manager (Simple Pub/Sub)
+   ================================================================= */
+const Store = {
+  _state: {
+    entries: [],
+    currentMonth: new Date().getMonth(),
+    currentYear: new Date().getFullYear(),
+    selectedDate: null,
+    isAuthenticated: false,
+    editingEntry: null,       // entry object when editing, null when viewing/creating
+    editingDate: null,
+    confirmCallback: null,
+    syncStatus: 'none',
+    hasToken: false
+  },
+  _listeners: {},
+
+  get(key) { return this._state[key]; },
+
+  set(key, value) {
+    this._state[key] = value;
+    (this._listeners[key] || []).forEach(fn => { try { fn(value); } catch(e) {} });
+  },
+
+  onChange(key, fn) {
+    if (!this._listeners[key]) this._listeners[key] = [];
+    this._listeners[key].push(fn);
+  },
+
+  batch(updates) {
+    for (const [key, value] of Object.entries(updates)) {
+      this._state[key] = value;
+    }
+    for (const key of Object.keys(updates)) {
+      (this._listeners[key] || []).forEach(fn => { try { fn(this._state[key]); } catch(e) {} });
+    }
+  },
+
+  init() {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    this._state.selectedDate = dateStr;
+  }
+};
+
+/* =================================================================
+   SECTION 2: Service Layer
+   ================================================================= */
+
+// --- Password Service ---
+const PasswordService = {
+  FIXED_PASSWORD: '9852',
+  SESSION_KEY: 'diary_session',
+
+  verify(password) {
+    return password === this.FIXED_PASSWORD;
+  },
+  isSessionActive() { return sessionStorage.getItem(this.SESSION_KEY) === '1'; },
+  setSessionActive() { sessionStorage.setItem(this.SESSION_KEY, '1'); },
+  clearSession() { sessionStorage.removeItem(this.SESSION_KEY); }
+};
+
+// --- GitHub Sync Service ---
+const GitHubService = {
+  TOKEN_KEY: 'diary_gh_token',
+  OWNER_KEY: 'diary_gh_owner',
+  REPO_KEY: 'diary_gh_repo',
+
+  getToken() { return localStorage.getItem(this.TOKEN_KEY) || ''; },
+  setToken(t) { localStorage.setItem(this.TOKEN_KEY, t); },
+  hasToken() { return !!this.getToken(); },
+  clearToken() { localStorage.removeItem(this.TOKEN_KEY); },
+
+  // Auto-detect repo info from URL (GitHub Pages format: owner.github.io/repo)
+  getRepoInfo() {
+    let owner = localStorage.getItem(this.OWNER_KEY) || '';
+    let repo = localStorage.getItem(this.REPO_KEY) || '';
+    if (!owner || !repo) {
+      const host = window.location.hostname;
+      const path = window.location.pathname;
+      if (host.endsWith('.github.io')) {
+        owner = host.replace('.github.io', '');
+      }
+      repo = path.replace(/^\/+|\/+$/g, '').split('/')[0] || '';
+      if (!repo && path === '/') {
+        // Try to guess from host (e.g. reponame.owner.github.io style)
+        const parts = host.split('.');
+        if (parts.length >= 3) repo = parts[0];
+      }
+    }
+    return { owner, repo };
+  },
+
+  setRepoInfo(owner, repo) {
+    localStorage.setItem(this.OWNER_KEY, owner);
+    localStorage.setItem(this.REPO_KEY, repo);
+  },
+
+  // Read data.json from GitHub
+  async fetchEntries() {
+    const token = this.getToken();
+    const { owner, repo } = this.getRepoInfo();
+    if (!owner || !repo) throw new Error('请先设置仓库信息');
+
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/data.json`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+    });
+
+    if (res.status === 404) return { entries: [], sha: null, exists: false };
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Token 无效或已过期');
+      throw new Error(`GitHub API 错误: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // Content is base64 encoded
+    const content = JSON.parse(atob(data.content));
+    return { entries: Array.isArray(content) ? content : [], sha: data.sha, exists: true };
+  },
+
+  // Push entries to GitHub (return new sha)
+  async pushEntries(entries, sha) {
+    const token = this.getToken();
+    const { owner, repo } = this.getRepoInfo();
+    if (!owner || !repo) throw new Error('请先设置仓库信息');
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(entries, null, 2))));
+    const body = { message: 'Update diary data', content };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.json`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify(body)
+    });
+
+    if (res.status === 409) {
+      // Conflict: someone else pushed. Fetch latest and merge.
+      const latest = await this.fetchEntries();
+      const merged = this._mergeEntries(latest.entries, entries);
+      return this.pushEntries(merged, latest.sha);
+    }
+
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Token 无效或已过期');
+      throw new Error(`GitHub API 错误: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.content ? data.content.sha : (data.sha || null);
+  },
+
+  // Merge: keep entries from both, prefer later updatedAt for same id
+  _mergeEntries(remote, local) {
+    const map = new Map();
+    for (const e of remote) map.set(e.id, e);
+    for (const e of local) {
+      const existing = map.get(e.id);
+      if (!existing || new Date(e.createdAt) >= new Date(existing.createdAt)) {
+        map.set(e.id, e);
+      }
+    }
+    return [...map.values()].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  }
+};
+
+// --- Entry Service ---
+const EntryService = {
+  STORAGE_KEY: 'diary_entries',
+
+  loadAll() {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (!raw) return [];
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data)) return [];
+      return data;
+    } catch(e) {
+      return [];
+    }
+  },
+
+  saveAll(entries) {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(entries));
+    } catch(e) {
+      if (e.name === 'QuotaExceededError') {
+        ToastRenderer.show('存储空间不足，请删除一些日记', 'error');
+      } else {
+        ToastRenderer.show('保存失败，请重试', 'error');
+      }
+    }
+  },
+
+  create(date, emoji, title, content) {
+    return {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      date: date,
+      emoji: emoji || '📖',
+      title: (title || '').trim() || '无标题',
+      content: content || '',
+      createdAt: new Date().toISOString()
+    };
+  },
+
+  add(entry) {
+    const entries = this.loadAll();
+    entries.push(entry);
+    entries.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    this.saveAll(entries);
+    this._syncToGitHub(entries);
+    return entries;
+  },
+
+  update(id, updates) {
+    const entries = this.loadAll();
+    const idx = entries.findIndex(e => e.id === id);
+    if (idx === -1) return null;
+    entries[idx] = { ...entries[idx], ...updates };
+    entries.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    this.saveAll(entries);
+    this._syncToGitHub(entries);
+    return entries;
+  },
+
+  delete(id) {
+    const entries = this.loadAll().filter(e => e.id !== id);
+    this.saveAll(entries);
+    this._syncToGitHub(entries);
+    return entries;
+  },
+
+  _syncToGitHub(entries) {
+    if (!GitHubService.hasToken()) return;
+    Store.set('syncStatus', 'syncing');
+    // Cache the current sha for push
+    const sha = Store._cachedSha || null;
+    GitHubService.pushEntries(entries, sha).then(newSha => {
+      Store._cachedSha = newSha;
+      Store.set('syncStatus', 'synced');
+    }).catch(err => {
+      console.error('GitHub sync failed:', err);
+      if (err.message.includes('Token')) {
+        Store.set('syncStatus', 'error');
+        ToastRenderer.show('同步失败: ' + err.message, 'error');
+      } else if (err.message.includes('网络') || err.message.includes('fetch')) {
+        Store.set('syncStatus', 'offline');
+      } else {
+        Store.set('syncStatus', 'error');
+        ToastRenderer.show('同步失败，数据已保存在本地', 'error');
+      }
+    });
+  },
+
+  getByMonth(year, month) {
+    const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+    return this.loadAll().filter(e => e.date.startsWith(prefix));
+  },
+
+  getByDate(dateStr) {
+    return this.loadAll().filter(e => e.date === dateStr);
+  },
+
+  // Group entries by date for a given month, sorted by date ascending
+  getGroupedByMonth(year, month) {
+    const entries = this.getByMonth(year, month);
+    const groups = new Map();
+    for (const e of entries) {
+      if (!groups.has(e.date)) groups.set(e.date, []);
+      groups.get(e.date).push(e);
+    }
+    // Sort by date
+    const sorted = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    return sorted;
+  },
+
+  // Get emoji map for calendar: dateStr -> emoji (first entry of that day)
+  getEmojiMap(year, month) {
+    const entries = this.getByMonth(year, month);
+    const map = {};
+    for (const e of entries) {
+      if (!map[e.date]) map[e.date] = e.emoji;
+    }
+    return map;
+  }
+};
+
+/* =================================================================
+   SECTION 3: UI Renderers
+   ================================================================= */
+
+// --- Toast ---
+const ToastRenderer = {
+  show(message, type) {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = message;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => el.remove(), 300);
+    }, 2800);
+  }
+};
+
+// --- Month Label ---
+function renderMonthLabel() {
+  const y = Store.get('currentYear');
+  const m = Store.get('currentMonth');
+  document.getElementById('month-year-label').textContent = `${y}年${m + 1}月`;
+}
+
+const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
+
+// --- Calendar ---
+function renderCalendar() {
+  const y = Store.get('currentYear');
+  const m = Store.get('currentMonth');
+  const selDate = Store.get('selectedDate');
+  const emojiMap = EntryService.getEmojiMap(y, m);
+
+  // Weekday headers
+  const weekdaysEl = document.getElementById('calendar-weekdays');
+  weekdaysEl.innerHTML = WEEKDAY_LABELS.map(d => `<span>${d}</span>`).join('');
+
+  // Grid
+  const grid = document.getElementById('calendar-grid');
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  const firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const daysInPrevMonth = new Date(y, m, 0).getDate();
+
+  let html = '';
+
+  // 42 cells (6 rows x 7)
+  for (let i = 0; i < 42; i++) {
+    let dayNum, dateStr, isOutside = false;
+
+    if (i < firstDay) {
+      // Previous month
+      dayNum = daysInPrevMonth - firstDay + i + 1;
+      const pm = m === 0 ? 11 : m - 1;
+      const py = m === 0 ? y - 1 : y;
+      dateStr = `${py}-${String(pm+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+      isOutside = true;
+    } else if (i - firstDay >= daysInMonth) {
+      // Next month
+      dayNum = i - firstDay - daysInMonth + 1;
+      const nm = m === 11 ? 0 : m + 1;
+      const ny = m === 11 ? y + 1 : y;
+      dateStr = `${ny}-${String(nm+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+      isOutside = true;
+    } else {
+      dayNum = i - firstDay + 1;
+      dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+    }
+
+    const classes = ['calendar-cell'];
+    if (isOutside) classes.push('outside-month');
+    if (dateStr === todayStr) classes.push('today');
+    if (dateStr === selDate && !isOutside) classes.push('selected');
+
+    const emoji = emojiMap[dateStr] || '';
+
+    html += `<div class="${classes.join(' ')}" data-action="select-date" data-date="${dateStr}">
+      <span class="day-num">${dayNum}</span>
+      ${emoji ? `<span class="emoji-marker">${emoji}</span>` : ''}
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+// --- Diary List ---
+function renderDiaryList() {
+  const y = Store.get('currentYear');
+  const m = Store.get('currentMonth');
+  const isAuth = Store.get('isAuthenticated');
+  const groups = EntryService.getGroupedByMonth(y, m);
+
+  const listEl = document.getElementById('diary-list');
+  const emptyEl = document.getElementById('empty-state');
+
+  if (groups.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+
+  emptyEl.classList.add('hidden');
+
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const dayNames = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+
+  let html = '';
+
+  for (const [dateStr, entries] of groups) {
+    const parts = dateStr.split('-');
+    const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    const dayName = dayNames[d.getDay()];
+    const label = `${+parts[1]}月${+parts[2]}日 ${dayName}`;
+
+    html += `<div class="diary-date-header" id="date-${dateStr}">
+      <span class="diary-date-text">${label}</span>
+      <span class="diary-date-count">${entries.length}条</span>
+    </div>`;
+
+    for (const entry of entries) {
+      const preview = entry.content ? (entry.content.length > 80 ? entry.content.slice(0, 80) + '…' : entry.content) : '(无内容)';
+      html += `<div class="entry-card" data-action="view-entry" data-entry-id="${entry.id}">
+        <div class="entry-card-header">
+          <span class="entry-emoji">${entry.emoji}</span>
+          <span class="entry-title">${escapeHTML(entry.title)}</span>
+        </div>
+        <div class="entry-preview">${escapeHTML(preview)}</div>
+        ${isAuth ? `
+        <div class="entry-actions">
+          <button class="btn-edit" data-action="edit-entry" data-entry-id="${entry.id}" aria-label="编辑" title="编辑">✏️</button>
+          <button class="btn-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="删除" title="删除">🗑️</button>
+        </div>` : ''}
+      </div>`;
+    }
+  }
+
+  listEl.innerHTML = html;
+}
+
+// --- Modal ---
+function openViewModal(entryId) {
+  const entries = EntryService.loadAll();
+  const entry = entries.find(e => e.id === entryId);
+  if (!entry) return;
+
+  const parts = entry.date.split('-');
+  const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  const dayNames = ['日','一','二','三','四','五','六'];
+  document.getElementById('modal-date-label').textContent =
+    `${+parts[1]}月${+parts[2]}日 星期${dayNames[d.getDay()]} ${new Date(entry.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})}`;
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="entry-detail-emoji">${entry.emoji}</div>
+    <div class="entry-detail-title">${escapeHTML(entry.title)}</div>
+    <div class="entry-detail-meta">创建于 ${new Date(entry.createdAt).toLocaleString('zh-CN')}</div>
+    <div class="entry-detail-content">${escapeHTML(entry.content) || '(无内容)'}</div>
+    ${Store.get('isAuthenticated') ? `
+    <div class="form-actions">
+      <button class="btn btn-secondary btn-sm" data-action="edit-from-view" data-entry-id="${entry.id}">✏️ 编辑</button>
+    </div>` : ''}
+  `;
+
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  Store.set('editingEntry', entry);
+  Store.set('editingDate', null);
+}
+
+function openEditModal(entryOrNull, dateStr) {
+  const entry = entryOrNull;
+  document.getElementById('modal-date-label').textContent = entry ? '编辑日记' : '新建日记';
+
+  const emoji = entry ? entry.emoji : '📖';
+  const title = entry ? entry.title : '';
+  const content = entry ? entry.content : '';
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-group">
+      <label>Emoji</label>
+      <input type="text" class="emoji-input" id="edit-emoji" value="${escapeHTML(emoji)}" maxlength="4" placeholder="📖">
+    </div>
+    <div class="form-group">
+      <label>标题</label>
+      <input type="text" id="edit-title" value="${escapeHTML(title)}" placeholder="日记标题" maxlength="200">
+    </div>
+    <div class="form-group">
+      <label>内容</label>
+      <textarea id="edit-content" placeholder="今天发生了什么事…">${escapeHTML(content)}</textarea>
+    </div>
+    <div class="form-actions">
+      ${entry ? `<button class="btn btn-danger btn-sm" data-action="delete-from-edit" data-entry-id="${entry.id}">🗑️ 删除</button>` : ''}
+      <button class="btn btn-secondary btn-sm" data-action="close-modal">取消</button>
+      <button class="btn btn-primary btn-sm" data-action="save-entry" data-entry-id="${entry ? entry.id : ''}">保存</button>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  Store.set('editingEntry', entry);
+  Store.set('editingDate', dateStr);
+
+  // Focus on title input for new entry
+  setTimeout(() => {
+    const titleInput = document.getElementById('edit-title');
+    if (titleInput && !entry) titleInput.focus();
+  }, 300);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  Store.set('editingEntry', null);
+  Store.set('editingDate', null);
+}
+
+function saveEntry(entryId) {
+  const emojiInput = document.getElementById('edit-emoji');
+  const titleInput = document.getElementById('edit-title');
+  const contentInput = document.getElementById('edit-content');
+
+  const emoji = (emojiInput.value || '').trim() || '📖';
+  const title = titleInput.value || '';
+  const content = contentInput.value || '';
+
+  if (!title.trim()) {
+    ToastRenderer.show('请输入标题', 'error');
+    titleInput.focus();
+    return;
+  }
+
+  if (entryId) {
+    // Update existing
+    EntryService.update(entryId, { emoji, title: title.trim(), content });
+    ToastRenderer.show('日记已更新', 'success');
+  } else {
+    // Create new
+    const dateStr = Store.get('editingDate') || Store.get('selectedDate');
+    const entry = EntryService.create(dateStr, emoji, title.trim(), content);
+    EntryService.add(entry);
+    ToastRenderer.show('日记已保存', 'success');
+  }
+
+  closeModal();
+  Store.set('entries', EntryService.loadAll());
+  refreshUI();
+}
+
+function deleteEntry(entryId) {
+  showConfirm('确定要删除这条日记吗？此操作不可撤销。', () => {
+    EntryService.delete(entryId);
+    closeModal();
+    Store.set('entries', EntryService.loadAll());
+    refreshUI();
+    ToastRenderer.show('日记已删除', 'info');
+  });
+}
+
+// --- Confirm Dialog ---
+function showConfirm(message, callback) {
+  document.getElementById('confirm-message').textContent = message;
+  document.getElementById('confirm-overlay').classList.remove('hidden');
+  Store.set('confirmCallback', callback);
+}
+
+function hideConfirm() {
+  document.getElementById('confirm-overlay').classList.add('hidden');
+  Store.set('confirmCallback', null);
+}
+
+document.getElementById('confirm-cancel').addEventListener('click', hideConfirm);
+document.getElementById('confirm-ok').addEventListener('click', () => {
+  const cb = Store.get('confirmCallback');
+  hideConfirm();
+  if (cb) cb();
+});
+
+// --- Password Dialog ---
+function showPasswordUnlock() {
+  const card = document.getElementById('password-card');
+  card.innerHTML = `
+    <h2>🔒 输入密码</h2>
+    <p class="pw-subtitle">输入密码解锁编辑功能</p>
+    <input type="password" id="pw-unlock" placeholder="输入密码" autocomplete="current-password">
+    <div class="pw-error" id="pw-error"></div>
+    <div class="pw-actions">
+      <button class="btn btn-secondary btn-sm" data-action="cancel-unlock">仅查看</button>
+      <button class="btn btn-primary btn-sm" id="btn-unlock">解锁</button>
+    </div>
+  `;
+
+  document.getElementById('password-overlay').classList.remove('hidden');
+
+  const doUnlock = () => {
+    const pw = document.getElementById('pw-unlock').value;
+    const errEl = document.getElementById('pw-error');
+
+    if (!pw) {
+      errEl.textContent = '请输入密码';
+      return;
+    }
+
+    if (PasswordService.verify(pw)) {
+      PasswordService.setSessionActive();
+      Store.set('isAuthenticated', true);
+      document.getElementById('password-overlay').classList.add('hidden');
+      refreshUI();
+      ToastRenderer.show('已解锁，可以编辑日记了', 'success');
+    } else {
+      errEl.textContent = '密码错误，请重试';
+      document.getElementById('pw-unlock').value = '';
+      document.getElementById('pw-unlock').focus();
+    }
+  };
+
+  document.getElementById('btn-unlock').addEventListener('click', doUnlock);
+  document.getElementById('pw-unlock').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doUnlock();
+  });
+}
+
+function hidePasswordDialog() {
+  document.getElementById('password-overlay').classList.add('hidden');
+  refreshUI();
+}
+
+// --- Settings Dialog ---
+function showSettings() {
+  const hasToken = GitHubService.hasToken();
+  const { owner, repo } = GitHubService.getRepoInfo();
+  const card = document.getElementById('settings-card');
+
+  card.innerHTML = `
+    <h2>⚙️ GitHub 同步设置</h2>
+    <p class="settings-subtitle">配置后，所有设备可共享同一份日记数据。</p>
+    <label>GitHub Personal Access Token</label>
+    <input type="password" id="set-token" placeholder="${hasToken ? '已保存 (如需更换请输入新Token)' : 'github_pat_xxxxxxxx'}" autocomplete="off">
+    <div class="settings-hint">
+      如何获取？打开 <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens</a> →
+      Generate new token → Contents: <b>Read and Write</b> → 仅限本仓库
+    </div>
+    <label>仓库 Owner (用户名)</label>
+    <input type="text" id="set-owner" placeholder="${owner || 'your-username'}" value="${owner}">
+    <label>仓库名 (Repo)</label>
+    <input type="text" id="set-repo" placeholder="${repo || 'repo-name'}" value="${repo}">
+    <div class="settings-actions">
+      ${hasToken ? '<button class="btn btn-secondary btn-sm" id="btn-clear-token">清除 Token</button>' : ''}
+      <button class="btn btn-secondary btn-sm" data-action="close-settings">取消</button>
+      <button class="btn btn-primary btn-sm" id="btn-save-settings">保存并同步</button>
+    </div>
+    <div class="settings-status" id="settings-status"></div>
+  `;
+
+  document.getElementById('settings-overlay').classList.remove('hidden');
+
+  // Save handler
+  document.getElementById('btn-save-settings').addEventListener('click', async () => {
+    const token = document.getElementById('set-token').value.trim();
+    const owner = document.getElementById('set-owner').value.trim();
+    const repo = document.getElementById('set-repo').value.trim();
+    const statusEl = document.getElementById('settings-status');
+
+    if (!owner || !repo) {
+      statusEl.textContent = '请填写 Owner 和 Repo';
+      statusEl.className = 'settings-status error';
+      return;
+    }
+
+    if (token) GitHubService.setToken(token);
+    GitHubService.setRepoInfo(owner, repo);
+
+    if (!GitHubService.hasToken()) {
+      statusEl.textContent = '请先输入 Token';
+      statusEl.className = 'settings-status error';
+      return;
+    }
+
+    statusEl.textContent = '正在同步...';
+    statusEl.className = 'settings-status';
+    Store.set('hasToken', true);
+    Store.set('syncStatus', 'syncing');
+    updateSyncDot();
+
+    try {
+      const { entries, sha, exists } = await GitHubService.fetchEntries();
+      Store._cachedSha = sha;
+      if (!exists) {
+        // File doesn't exist yet — push local data up
+        const local = EntryService.loadAll();
+        const newSha = await GitHubService.pushEntries(local, null);
+        Store._cachedSha = newSha;
+        Store.set('entries', local);
+        Store.set('syncStatus', 'synced');
+        statusEl.textContent = '✅ 已创建同步文件，' + local.length + ' 条日记已上传';
+        statusEl.className = 'settings-status';
+        refreshUI();
+        setTimeout(() => hideSettings(), 1500);
+      } else {
+        // Remote data exists — use it as source of truth
+        EntryService.saveAll(entries);
+        Store.set('entries', entries);
+        Store.set('syncStatus', 'synced');
+        statusEl.textContent = '✅ 同步成功！已加载 ' + entries.length + ' 条日记';
+        statusEl.className = 'settings-status';
+        refreshUI();
+        setTimeout(() => hideSettings(), 1500);
+      }
+    } catch(err) {
+      statusEl.textContent = '❌ ' + err.message;
+      statusEl.className = 'settings-status error';
+      Store.set('syncStatus', 'error');
+      updateSyncDot();
+    }
+  });
+
+  // Clear token handler
+  const clearBtn = document.getElementById('btn-clear-token');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      GitHubService.clearToken();
+      Store.set('hasToken', false);
+      Store.set('syncStatus', 'none');
+      updateSyncDot();
+      showSettings(); // Re-render the dialog
+      ToastRenderer.show('Token 已清除', 'info');
+    });
+  }
+}
+
+function hideSettings() {
+  document.getElementById('settings-overlay').classList.add('hidden');
+}
+
+function updateFAB() {
+  const fab = document.getElementById('fab');
+  if (Store.get('isAuthenticated')) {
+    fab.classList.remove('hidden');
+  } else {
+    fab.classList.add('hidden');
+  }
+}
+
+// --- Lock Button ---
+function updateLockButton() {
+  const btn = document.getElementById('btn-lock');
+  if (Store.get('isAuthenticated')) {
+    btn.textContent = '🔓';
+    btn.setAttribute('aria-label', '锁定编辑');
+  } else {
+    btn.textContent = '🔒';
+    btn.setAttribute('aria-label', '解锁编辑');
+  }
+}
+
+/* =================================================================
+   SECTION 4: Event Delegation
+   ================================================================= */
+
+function handleAction(action, dataset) {
+  switch (action) {
+    case 'prev-month': {
+      let m = Store.get('currentMonth');
+      let y = Store.get('currentYear');
+      if (m === 0) { m = 11; y--; }
+      else { m--; }
+      Store.batch({ currentMonth: m, currentYear: y });
+      refreshUI();
+      break;
+    }
+    case 'next-month': {
+      let m = Store.get('currentMonth');
+      let y = Store.get('currentYear');
+      if (m === 11) { m = 0; y++; }
+      else { m++; }
+      Store.batch({ currentMonth: m, currentYear: y });
+      refreshUI();
+      break;
+    }
+    case 'today': {
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      Store.batch({
+        currentMonth: today.getMonth(),
+        currentYear: today.getFullYear(),
+        selectedDate: dateStr
+      });
+      refreshUI();
+      // Scroll to today's section
+      setTimeout(() => {
+        const el = document.getElementById('date-' + dateStr);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      break;
+    }
+    case 'select-date': {
+      if (!dataset.date) break;
+      const parts = dataset.date.split('-');
+      const y = +parts[0];
+      const m = +parts[1] - 1;
+      const currY = Store.get('currentYear');
+      const currM = Store.get('currentMonth');
+
+      Store.set('selectedDate', dataset.date);
+
+      // If clicking outside month, navigate to that month
+      if (y !== currY || m !== currM) {
+        Store.batch({ currentMonth: m, currentYear: y });
+      }
+
+      refreshUI();
+
+      // Scroll to date section
+      setTimeout(() => {
+        const el = document.getElementById('date-' + dataset.date);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      break;
+    }
+    case 'view-entry': {
+      if (!dataset.entryId) break;
+      openViewModal(dataset.entryId);
+      break;
+    }
+    case 'edit-entry': {
+      if (!Store.get('isAuthenticated')) {
+        ToastRenderer.show('请先解锁', 'info');
+        showPasswordUnlock();
+        break;
+      }
+      if (!dataset.entryId) break;
+      const entries = EntryService.loadAll();
+      const entry = entries.find(e => e.id === dataset.entryId);
+      if (entry) openEditModal(entry, entry.date);
+      break;
+    }
+    case 'delete-entry': {
+      if (!Store.get('isAuthenticated')) break;
+      if (!dataset.entryId) break;
+      deleteEntry(dataset.entryId);
+      break;
+    }
+    case 'add-entry': {
+      if (!Store.get('isAuthenticated')) {
+        ToastRenderer.show('请先解锁', 'info');
+        showPasswordUnlock();
+        break;
+      }
+      const dateStr = Store.get('selectedDate');
+      openEditModal(null, dateStr);
+      break;
+    }
+    case 'save-entry': {
+      saveEntry(dataset.entryId || '');
+      break;
+    }
+    case 'close-modal': {
+      closeModal();
+      break;
+    }
+    case 'edit-from-view': {
+      if (!dataset.entryId) break;
+      const entries = EntryService.loadAll();
+      const entry = entries.find(e => e.id === dataset.entryId);
+      if (entry) openEditModal(entry, entry.date);
+      break;
+    }
+    case 'delete-from-edit': {
+      if (!dataset.entryId) break;
+      deleteEntry(dataset.entryId);
+      break;
+    }
+    case 'toggle-lock': {
+      if (Store.get('isAuthenticated')) {
+        // Lock
+        PasswordService.clearSession();
+        Store.set('isAuthenticated', false);
+        closeModal();
+        refreshUI();
+        ToastRenderer.show('已锁定，日记为只读模式', 'info');
+      } else {
+        // Show unlock dialog
+        showPasswordUnlock();
+      }
+      break;
+    }
+    case 'cancel-unlock': {
+      hidePasswordDialog();
+      break;
+    }
+    case 'open-settings': {
+      showSettings();
+      break;
+    }
+    case 'close-settings': {
+      hideSettings();
+      break;
+    }
+    case 'sync-retry': {
+      const status = Store.get('syncStatus');
+      if (status === 'error' || status === 'offline') {
+        Store.set('syncStatus', 'syncing');
+        updateSyncDot();
+        GitHubService.fetchEntries().then(({ entries, sha, exists }) => {
+          Store._cachedSha = sha;
+          if (!exists) {
+            // Push local data if remote doesn't exist
+            const local = EntryService.loadAll();
+            GitHubService.pushEntries(local, null).then(ns => {
+              Store._cachedSha = ns;
+              Store.set('syncStatus', 'synced');
+              refreshUI();
+              ToastRenderer.show('已上传本地数据', 'success');
+            }).catch(err => {
+              Store.set('syncStatus', 'error');
+              updateSyncDot();
+              ToastRenderer.show('同步失败: ' + err.message, 'error');
             });
-        }
-
-        function getDayEmoji(dateStr) {
-            const dayEntries = getDayEntries(dateStr);
-            if (dayEntries.length === 0) return null;
-            // Return the emoji of the first entry, or most frequent
-            const emojiCount = {};
-            dayEntries.forEach(e => {
-                emojiCount[e.emoji] = (emojiCount[e.emoji] || 0) + 1;
-            });
-            return Object.entries(emojiCount).sort((a, b) => b[1] - a[1])[0][0];
-        }
-
-        // Calendar
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-
-            document.getElementById('currentMonth').textContent = 
-                `${year}年 ${month + 1}月`;
-
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-
-            const prevMonthLastDay = new Date(year, month, 0).getDate();
-
-            // Previous month days
-            for (let i = startDay - 1; i >= 0; i--) {
-                const day = prevMonthLastDay - i;
-                const cell = createDayCell(day, true);
-                grid.appendChild(cell);
-            }
-
-            // Current month days
-            const today = new Date();
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
-                const emoji = getDayEmoji(dateStr);
-                const dayEntries = getDayEntries(dateStr);
-
-                const cell = createDayCell(day, false, isToday, emoji, dayEntries.length, dateStr);
-                grid.appendChild(cell);
-            }
-
-            // Next month days
-            const totalCells = startDay + lastDay.getDate();
-            const remainingCells = 42 - totalCells;
-            for (let day = 1; day <= remainingCells; day++) {
-                const cell = createDayCell(day, true);
-                grid.appendChild(cell);
-            }
-        }
-
-        function createDayCell(day, isOtherMonth, isToday = false, emoji = null, count = 0, dateStr = null) {
-            const cell = document.createElement('div');
-            cell.className = 'calendar-day';
-            if (isOtherMonth) cell.classList.add('other-month');
-            if (isToday) cell.classList.add('today');
-            if (emoji) cell.classList.add('has-entry');
-
-            cell.innerHTML = `
-                <div class="day-number">${day}</div>
-                ${emoji ? `<div class="day-emoji">${emoji}</div>` : ''}
-                ${count > 1 ? `<div class="entry-count">${count}</div>` : ''}
-            `;
-
-            if (!isOtherMonth && dateStr) {
-                cell.onclick = () => openAddModal(dateStr);
-            }
-
-            return cell;
-        }
-
-        // Diary List
-        function renderDiaryList() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const entries = getMonthEntries(year, month);
-            const container = document.getElementById('diaryList');
-
-            document.getElementById('diaryListTitle').textContent = `${year}年${month + 1}月日记`;
-
-            if (entries.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <span class="emoji">🌱</span>
-                        <h3>这个月还没有日记</h3>
-                        <p>点击右上角的 + 按钮，或者点击日历上的日期来开始记录</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Group by date
-            const grouped = {};
-            entries.forEach(entry => {
-                if (!grouped[entry.date]) grouped[entry.date] = [];
-                grouped[entry.date].push(entry);
-            });
-
-            const sortedDates = Object.keys(grouped).sort().reverse();
-
-            container.innerHTML = sortedDates.map((date, groupIndex) => {
-                const dateObj = new Date(date);
-                const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-                const weekday = weekdays[dateObj.getDay()];
-
-                const cards = grouped[date].map((entry, index) => `
-                    <div class="diary-card" onclick="openViewModal('${entry.id}')" style="animation-delay: ${(groupIndex * 0.1) + (index * 0.05)}s">
-                        <div class="diary-card-header">
-                            <div class="diary-title">
-                                <span class="diary-emoji">${entry.emoji}</span>
-                                ${entry.title || '无标题'}
-                            </div>
-                            <div class="diary-time">${entry.createdAt ? new Date(entry.createdAt).toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'}) : ''}</div>
-                        </div>
-                        <div class="diary-preview">${entry.content}</div>
-                    </div>
-                `).join('');
-
-                return `
-                    <div class="diary-group">
-                        <div class="diary-date-header">
-                            <span class="date-badge">${dateObj.getMonth() + 1}月${dateObj.getDate()}日</span>
-                            <span class="date-weekday">${weekday}</span>
-                        </div>
-                        ${cards}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Navigation
-        function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
-            renderCalendar();
-            renderDiaryList();
-        }
-
-        function goToToday() {
-            currentDate = new Date();
-            renderCalendar();
-            renderDiaryList();
-        }
-
-        // Modal Functions
-        function openAddModal(dateStr = null) {
-            editingId = null;
-            document.getElementById('editModalTitle').textContent = '写新日记';
-            document.getElementById('entryDate').value = dateStr || new Date().toISOString().split('T')[0];
-            document.getElementById('entryTitle').value = '';
-            document.getElementById('entryContent').value = '';
-            document.getElementById('deleteBtn').style.display = 'none';
-
-            // Reset emoji selection
-            document.querySelectorAll('.emoji-option').forEach(btn => {
-                btn.classList.toggle('selected', btn.dataset.emoji === '📝');
-            });
-            selectedEmoji = '📝';
-
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function openEditModal(id) {
-            const entries = getEntries();
-            const entry = entries.find(e => e.id === id);
-            if (!entry) return;
-
-            editingId = id;
-            document.getElementById('editModalTitle').textContent = '编辑日记';
-            document.getElementById('entryDate').value = entry.date;
-            document.getElementById('entryTitle').value = entry.title || '';
-            document.getElementById('entryContent').value = entry.content || '';
-            document.getElementById('deleteBtn').style.display = 'inline-block';
-
-            // Set emoji
-            document.querySelectorAll('.emoji-option').forEach(btn => {
-                btn.classList.toggle('selected', btn.dataset.emoji === entry.emoji);
-            });
-            selectedEmoji = entry.emoji;
-
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function openViewModal(id) {
-            const entries = getEntries();
-            const entry = entries.find(e => e.id === id);
-            if (!entry) return;
-
-            viewingId = id;
-            document.getElementById('viewTitle').textContent = entry.title || '无标题';
-            document.getElementById('viewEmoji').textContent = entry.emoji;
-            document.getElementById('viewDate').textContent = entry.date;
-            document.getElementById('viewTime').textContent = entry.createdAt ? 
-                new Date(entry.createdAt).toLocaleString('zh-CN') : '';
-            document.getElementById('viewContent').textContent = entry.content;
-
-            document.getElementById('viewModal').classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        function editFromView() {
-            closeModal('viewModal');
-            setTimeout(() => openEditModal(viewingId), 300);
-        }
-
-        function saveEntry() {
-            const date = document.getElementById('entryDate').value;
-            const title = document.getElementById('entryTitle').value.trim();
-            const content = document.getElementById('entryContent').value.trim();
-
-            if (!content) {
-                alert('请填写日记内容');
-                return;
-            }
-
-            const entries = getEntries();
-
-            if (editingId) {
-                const index = entries.findIndex(e => e.id === editingId);
-                if (index !== -1) {
-                    entries[index] = {
-                        ...entries[index],
-                        date,
-                        title,
-                        content,
-                        emoji: selectedEmoji
-                    };
-                }
-            } else {
-                entries.push({
-                    id: 'entry_' + Date.now(),
-                    date,
-                    title,
-                    content,
-                    emoji: selectedEmoji,
-                    createdAt: new Date().toISOString()
-                });
-            }
-
-            saveEntries(entries);
-            closeModal('editModal');
-            renderCalendar();
-            renderDiaryList();
-        }
-
-        function deleteEntry() {
-            if (!editingId) return;
-            if (!confirm('确定要删除这篇日记吗？')) return;
-
-            const entries = getEntries().filter(e => e.id !== editingId);
-            saveEntries(entries);
-            closeModal('editModal');
-            renderCalendar();
-            renderDiaryList();
-        }
-
-        // Emoji picker
-        document.getElementById('emojiPicker').addEventListener('click', (e) => {
-            if (e.target.classList.contains('emoji-option')) {
-                document.querySelectorAll('.emoji-option').forEach(btn => btn.classList.remove('selected'));
-                e.target.classList.add('selected');
-                selectedEmoji = e.target.dataset.emoji;
-            }
+          } else {
+            EntryService.saveAll(entries);
+            Store.set('entries', entries);
+            Store.set('syncStatus', 'synced');
+            refreshUI();
+            ToastRenderer.show('同步成功', 'success');
+          }
+        }).catch(err => {
+          Store.set('syncStatus', 'error');
+          updateSyncDot();
+          ToastRenderer.show('同步失败: ' + err.message, 'error');
         });
+      }
+      break;
+    }
+  }
+}
 
-        // Close modal on overlay click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.classList.remove('active');
-                }
-            });
-        });
+// Global event delegation (on document to catch modal clicks too)
+document.addEventListener('click', (e) => {
+  const actionable = e.target.closest('[data-action]');
+  if (!actionable) return;
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
-            }
-        });
+  const action = actionable.dataset.action;
+  // Don't trigger view-entry when clicking edit/delete buttons
+  if (action === 'view-entry' && e.target.closest('.entry-actions')) return;
 
-        // Initialize
-        renderCalendar();
-        renderDiaryList();
-    </script>
+  e.preventDefault();
+  handleAction(action, actionable.dataset);
+});
+
+// Modal overlay click to close
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Password overlay - no backdrop close for security
+
+// Settings overlay click to close
+document.getElementById('settings-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) hideSettings();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // Close modal first
+    if (!document.getElementById('modal-overlay').classList.contains('hidden')) {
+      closeModal();
+      return;
+    }
+    // Close settings
+    if (!document.getElementById('settings-overlay').classList.contains('hidden')) {
+      hideSettings();
+      return;
+    }
+    // Close confirm
+    if (!document.getElementById('confirm-overlay').classList.contains('hidden')) {
+      hideConfirm();
+      return;
+    }
+  }
+  // Ctrl+N for new entry
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    if (Store.get('isAuthenticated') && document.getElementById('modal-overlay').classList.contains('hidden') && document.getElementById('password-overlay').classList.contains('hidden')) {
+      e.preventDefault();
+      const dateStr = Store.get('selectedDate');
+      openEditModal(null, dateStr);
+    }
+  }
+});
+
+/* =================================================================
+   SECTION 5: Initialization
+   ================================================================= */
+
+function refreshUI() {
+  renderMonthLabel();
+  renderCalendar();
+  renderDiaryList();
+  updateFAB();
+  updateLockButton();
+  updateSyncDot();
+}
+
+function updateSyncDot() {
+  const dot = document.getElementById('sync-dot');
+  if (!dot) return;
+  const hasToken = GitHubService.hasToken();
+  const status = Store.get('syncStatus');
+  if (!hasToken) {
+    dot.className = 'sync-dot none'; dot.title = '未设置同步';
+  } else if (status === 'synced') {
+    dot.className = 'sync-dot synced'; dot.title = '已同步';
+  } else if (status === 'syncing') {
+    dot.className = 'sync-dot syncing'; dot.title = '同步中...';
+  } else if (status === 'offline') {
+    dot.className = 'sync-dot offline'; dot.title = '离线，数据已本地保存';
+  } else {
+    dot.className = 'sync-dot error'; dot.title = '同步失败，点击重试';
+  }
+}
+
+async function init() {
+  // Set initial date
+  Store.init();
+
+  // Check session
+  const isAuth = PasswordService.isSessionActive();
+  Store.set('isAuthenticated', isAuth);
+
+  const hasToken = GitHubService.hasToken();
+  Store.set('hasToken', hasToken);
+
+  if (hasToken) {
+    // Try to pull from GitHub
+    Store.set('syncStatus', 'syncing');
+    try {
+      const { entries, sha, exists } = await GitHubService.fetchEntries();
+      Store._cachedSha = sha;
+      if (!exists) {
+        // File doesn't exist on GitHub yet — push local data up
+        const local = EntryService.loadAll();
+        if (local.length > 0) {
+          const newSha = await GitHubService.pushEntries(local, null);
+          Store._cachedSha = newSha;
+        }
+        Store.set('entries', local);
+      } else {
+        // Use remote data as source of truth
+        EntryService.saveAll(entries);
+        Store.set('entries', entries);
+      }
+      Store.set('syncStatus', 'synced');
+      console.log('📖 已从 GitHub 加载 ' + Store.get('entries').length + ' 条日记');
+    } catch(err) {
+      console.warn('GitHub pull failed, using local cache:', err.message);
+      const entries = EntryService.loadAll();
+      Store.set('entries', entries);
+      if (err.message.includes('Token')) {
+        Store.set('syncStatus', 'error');
+      } else {
+        Store.set('syncStatus', 'offline');
+      }
+    }
+  } else {
+    // No token, use local storage
+    const entries = EntryService.loadAll();
+    Store.set('entries', entries);
+    Store.set('syncStatus', 'none');
+  }
+
+  // Render
+  refreshUI();
+
+  console.log('📖 日记应用已就绪');
+  console.log('  密码: 9852');
+  console.log('  ' + Store.get('entries').length + ' 条日记');
+  console.log('  ' + (isAuth ? '已解锁编辑' : '只读模式'));
+  console.log('  GitHub 同步: ' + (hasToken ? '已配置' : '未设置'));
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+
+/* =================================================================
+   SECTION 6: Utility Functions
+   ================================================================= */
+
+function escapeHTML(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+})();
+</script>
+
 </body>
 </html>
